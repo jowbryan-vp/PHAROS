@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/*
+ * Design tokens — PHAROS
+ * Cor primária (#10243D) já usada no deploy anterior do produto.
+ * Paleta secundária e cores semânticas definidas nesta etapa.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --color-primary: #10243d;
+  --color-primary-hover: #1a3556;
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #c99a4b;
+  --color-secondary-hover: #b98935;
+  --color-secondary-foreground: #10243d;
+
+  --color-success: #1b8a5a;
+  --color-error: #c4453d;
+  --color-warning: #d98c0d;
+
+  --font-size-display: 2.5rem;
+  --font-size-display--line-height: 3rem;
+  --font-size-h1: 2rem;
+  --font-size-h1--line-height: 2.5rem;
+  --font-size-h2: 1.5rem;
+  --font-size-h2--line-height: 2rem;
+  --font-size-h3: 1.25rem;
+  --font-size-h3--line-height: 1.75rem;
+  --font-size-body: 1rem;
+  --font-size-body--line-height: 1.5rem;
+  --font-size-caption: 0.875rem;
+  --font-size-caption--line-height: 1.25rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
