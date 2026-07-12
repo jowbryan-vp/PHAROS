@@ -3,7 +3,7 @@
 | Etapa | Status | Data |
 | --- | --- | --- |
 | 1 — Fundação | Concluída | 2026-07-11 |
-| 2 — Cadastros-base (Fontes de Receita, Contas, Categorias/Subcategorias) | Não iniciada | — |
+| 2 — Cadastros-base (Fontes de Receita, Contas, Categorias/Subcategorias) | Em andamento (aguardando aplicação da migration em produção) | — |
 | 3 — Receitas | Não iniciada | — |
 | 4 | Não iniciada | — |
 | 5 | Não iniciada | — |
