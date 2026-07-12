@@ -90,14 +90,14 @@ paleta satélite de contas/cartões/pessoas em `lib/colors.ts`, tema
 persistido manualmente (não só `prefers-color-scheme`) via
 `components/providers/theme-provider.tsx` + `lib/theme.ts`.
 
-> **Símbolo da marca**: os SVGs oficiais (`pharos-logo-v2-dia.svg` /
-> `pharos-logo-v2.svg`, com o orbe sol/lua) não foram anexados a este
-> ambiente — os arquivos em `public/brand/` são placeholders geométricos
-> simples (torre + orbe) só para a estrutura funcionar. Substitua-os
-> pelos arquivos oficiais quando disponíveis; os nomes dos arquivos já
-> seguem a convenção esperada por `components/brand/pharos-logo.tsx`.
-> Os ícones em `app/icon.svg`, `app/apple-icon.png` e `public/icons/`
-> também precisam ser regerados a partir da arte oficial.
+> **Símbolo da marca**: `public/brand/pharos-logo-v2-dia.svg` (orbe sol) e
+> `pharos-logo-v2.svg` (orbe lua) são a arte oficial. As versões só-símbolo
+> (`pharos-symbol-dia.svg` / `pharos-symbol-noite.svg`, sem o wordmark) e os
+> ícones (`app/icon.png`, `app/apple-icon.png`, `public/icons/`) foram
+> recortados/gerados automaticamente a partir dessa arte. O wordmark da arte
+> oficial usa uma cor fixa (não muda por tema); em fundo escuro,
+> `<PharosLogo />` compensa isso com uma placa clara atrás do lockup — o
+> símbolo em si nunca é recolorido.
 
 ## Estrutura de pastas
 

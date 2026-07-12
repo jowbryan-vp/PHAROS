@@ -26,7 +26,7 @@ export function PharosLogo({ width = 160, className = "" }: PharosLogoProps) {
   const variant = width < LOCKUP_MIN_WIDTH ? "symbol" : "lockup";
   const src = SOURCES[variant][theme];
 
-  return (
+  const img = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={src}
@@ -36,4 +36,17 @@ export function PharosLogo({ width = 160, className = "" }: PharosLogoProps) {
       className={className}
     />
   );
+
+  // O wordmark da arte oficial é sempre teal-deep (a marca não é recolorida
+  // por tema). Em fundo escuro isso fica ilegível, então o lockup ganha uma
+  // "placa" clara por trás só no tema escuro — o símbolo em si não é tocado.
+  if (variant === "lockup" && theme === "dark") {
+    return (
+      <span className="inline-flex rounded-md bg-[var(--pharos-ivory)] px-3 py-1.5">
+        {img}
+      </span>
+    );
+  }
+
+  return img;
 }
