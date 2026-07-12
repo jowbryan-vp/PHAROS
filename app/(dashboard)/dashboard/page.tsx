@@ -16,11 +16,11 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center">
-        <h1 className="text-lg font-semibold text-neutral-900">
+      <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center dark:border-neutral-700 dark:bg-neutral-900">
+        <h1 className="font-display text-lg font-semibold text-foreground">
           Em construção
         </h1>
-        <p className="mt-2 text-sm text-neutral-500">
+        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
           As funcionalidades financeiras (receitas, contas, cartões,
           cofrinhos, ciclo financeiro) chegam nas próximas etapas.
         </p>

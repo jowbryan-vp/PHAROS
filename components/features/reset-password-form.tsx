@@ -25,7 +25,7 @@ export function ResetPasswordForm() {
         {pending ? "Enviando..." : "Enviar link de recuperação"}
       </Button>
       <p className="text-center text-sm text-neutral-500">
-        <Link href="/login" className="text-primary hover:underline">
+        <Link href="/login" className="text-brand hover:underline">
           Voltar para o login
         </Link>
       </p>

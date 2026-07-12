@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-label="PHAROS">
+  <polygon points="145,125 280,70 280,180" fill="#F2A93C" opacity="0.32" />
+  <polygon points="145,125 270,95 270,155" fill="#F2A93C" opacity="0.55" />
+  <polygon points="118,272 172,272 160,130 130,130" fill="#0F4C4C" />
+  <rect x="124" y="200" width="42" height="10" fill="#F5F2EA" />
+  <rect x="124" y="112" width="42" height="18" rx="2" fill="#0F4C4C" stroke="#F5F2EA" stroke-width="2" />
+  <polygon points="120,112 170,112 145,92" fill="#0F4C4C" />
+  <circle cx="190" cy="110" r="60" fill="#FDB143" stroke="#0F4C4C" stroke-width="3" />
+</svg>

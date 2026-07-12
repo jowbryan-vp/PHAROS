@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 260" role="img" aria-label="Símbolo PHAROS">
+  <polygon points="120,100 240,44 240,168" fill="#F2A93C" opacity="0.32" />
+  <polygon points="120,100 232,72 232,140" fill="#F2A93C" opacity="0.55" />
+  <polygon points="95,260 145,260 135,100 105,100" fill="#0F4C4C" />
+  <rect x="100" y="176" width="40" height="9" fill="#F5F2EA" />
+  <rect x="100" y="85" width="40" height="18" rx="2" fill="#0F4C4C" stroke="#F5F2EA" stroke-width="2" />
+  <polygon points="96,85 144,85 120,65" fill="#0F4C4C" />
+  <circle cx="150" cy="110" r="52" fill="#CFDBDA" stroke="#0F4C4C" stroke-width="3" />
+</svg>

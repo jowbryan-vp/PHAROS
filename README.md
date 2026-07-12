@@ -83,6 +83,22 @@ Acesse [http://localhost:3000](http://localhost:3000).
 3. Faça o deploy normalmente — build command e output são detectados
    automaticamente pela Vercel para projetos Next.js.
 
+## Identidade visual
+
+Tokens de marca (cores, tipografia, tema claro/escuro) em `app/globals.css`,
+paleta satélite de contas/cartões/pessoas em `lib/colors.ts`, tema
+persistido manualmente (não só `prefers-color-scheme`) via
+`components/providers/theme-provider.tsx` + `lib/theme.ts`.
+
+> **Símbolo da marca**: os SVGs oficiais (`pharos-logo-v2-dia.svg` /
+> `pharos-logo-v2.svg`, com o orbe sol/lua) não foram anexados a este
+> ambiente — os arquivos em `public/brand/` são placeholders geométricos
+> simples (torre + orbe) só para a estrutura funcionar. Substitua-os
+> pelos arquivos oficiais quando disponíveis; os nomes dos arquivos já
+> seguem a convenção esperada por `components/brand/pharos-logo.tsx`.
+> Os ícones em `app/icon.svg`, `app/apple-icon.png` e `public/icons/`
+> também precisam ser regerados a partir da arte oficial.
+
 ## Estrutura de pastas
 
 ```

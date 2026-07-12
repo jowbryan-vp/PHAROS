@@ -32,10 +32,10 @@ export function LoginForm() {
         {pending ? "Entrando..." : "Entrar"}
       </Button>
       <div className="flex justify-between text-sm text-neutral-500">
-        <Link href="/recuperar-senha" className="hover:text-primary">
+        <Link href="/recuperar-senha" className="hover:text-brand">
           Esqueci minha senha
         </Link>
-        <Link href="/cadastro" className="hover:text-primary">
+        <Link href="/cadastro" className="hover:text-brand">
           Criar conta
         </Link>
       </div>

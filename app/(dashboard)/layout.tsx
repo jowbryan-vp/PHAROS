@@ -34,7 +34,9 @@ export default async function DashboardLayout({
       <Header email={user.email ?? null} />
       <div className="flex flex-1">
         <Sidebar />
-        <main className="flex-1 bg-neutral-50 p-6">{children}</main>
+        <main className="flex-1 bg-neutral-50 p-6 dark:bg-neutral-950">
+          {children}
+        </main>
       </div>
     </div>
   );

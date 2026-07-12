@@ -57,17 +57,19 @@ export function ProfileRealtimeCard({ profile }: { profile: Profile }) {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-6">
+    <div className="rounded-lg border border-neutral-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-neutral-900">Seu perfil</h2>
+        <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          Seu perfil
+        </h2>
         <span
           className={`flex items-center gap-1.5 text-xs ${
-            connected ? "text-success" : "text-neutral-400"
+            connected ? "text-success" : "text-neutral-400 dark:text-neutral-600"
           }`}
         >
           <span
             className={`h-2 w-2 rounded-full ${
-              connected ? "bg-success" : "bg-neutral-300"
+              connected ? "bg-success" : "bg-neutral-300 dark:bg-neutral-700"
             }`}
           />
           {connected ? "Realtime conectado" : "Conectando..."}
@@ -85,16 +87,18 @@ export function ProfileRealtimeCard({ profile }: { profile: Profile }) {
             {saving ? "Salvando..." : "Salvar"}
           </Button>
         </div>
-        <p className="text-xs text-neutral-500">
+        <p className="text-xs text-neutral-500 dark:text-neutral-400">
           Altere seu nome aqui e abra o dashboard em outra aba (ou
           dispositivo) logado na mesma conta: a mudança deve aparecer sem
           recarregar a página.
         </p>
-        <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
-          <dt className="text-neutral-500">Modo financeiro</dt>
-          <dd className="text-neutral-900">{current.modo_financeiro}</dd>
-          <dt className="text-neutral-500">Onboarding completo</dt>
-          <dd className="text-neutral-900">
+        <dl className="mt-2 grid grid-cols-2 gap-2 text-sm tabular-nums-feature">
+          <dt className="text-neutral-500 dark:text-neutral-400">Modo financeiro</dt>
+          <dd className="text-neutral-900 dark:text-neutral-100">
+            {current.modo_financeiro}
+          </dd>
+          <dt className="text-neutral-500 dark:text-neutral-400">Onboarding completo</dt>
+          <dd className="text-neutral-900 dark:text-neutral-100">
             {current.onboarding_completo ? "Sim" : "Não"}
           </dd>
         </dl>
