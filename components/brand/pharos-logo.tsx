@@ -4,15 +4,9 @@ import { useTheme } from "@/components/providers/theme-provider";
 
 const LOCKUP_MIN_WIDTH = 120;
 
-const SOURCES = {
-  lockup: {
-    light: "/brand/pharos-logo-v2-dia.svg",
-    dark: "/brand/pharos-logo-v2.svg",
-  },
-  symbol: {
-    light: "/brand/pharos-symbol-dia.svg",
-    dark: "/brand/pharos-symbol-noite.svg",
-  },
+const SYMBOL_SOURCES = {
+  light: "/brand/pharos-symbol-dia.svg",
+  dark: "/brand/pharos-symbol-noite.svg",
 } as const;
 
 type PharosLogoProps = {
@@ -23,30 +17,38 @@ type PharosLogoProps = {
 
 export function PharosLogo({ width = 160, className = "" }: PharosLogoProps) {
   const { theme } = useTheme();
-  const variant = width < LOCKUP_MIN_WIDTH ? "symbol" : "lockup";
-  const src = SOURCES[variant][theme];
+  const showWordmark = width >= LOCKUP_MIN_WIDTH;
+  const symbolHeight = showWordmark ? width * 0.46 : width;
 
-  const img = (
+  const symbol = (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={src}
-      alt="PHAROS"
-      width={width}
-      style={{ width, height: "auto" }}
-      className={className}
+      src={SYMBOL_SOURCES[theme]}
+      alt={showWordmark ? "" : "PHAROS"}
+      style={{ height: symbolHeight, width: "auto" }}
     />
   );
 
-  // O wordmark da arte oficial é sempre teal-deep (a marca não é recolorida
-  // por tema). Em fundo escuro isso fica ilegível, então o lockup ganha uma
-  // "placa" clara por trás só no tema escuro — o símbolo em si não é tocado.
-  if (variant === "lockup" && theme === "dark") {
+  if (!showWordmark) {
     return (
-      <span className="inline-flex rounded-md bg-[var(--pharos-ivory)] px-3 py-1.5">
-        {img}
-      </span>
+      <span className={`inline-flex ${className}`}>{symbol}</span>
     );
   }
 
-  return img;
+  return (
+    <span
+      className={`inline-flex items-center gap-1 ${className}`}
+      role="img"
+      aria-label="PHAROS"
+    >
+      {symbol}
+      <span
+        aria-hidden="true"
+        className="font-display font-medium leading-none text-foreground"
+        style={{ fontSize: width * 0.26 }}
+      >
+        haros
+      </span>
+    </span>
+  );
 }
