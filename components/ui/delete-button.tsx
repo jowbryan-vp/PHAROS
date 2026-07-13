@@ -9,7 +9,7 @@ export function DeleteButton({
   className = "",
 }: {
   id: string;
-  action: (id: string) => Promise<void>;
+  action: (id: string) => Promise<{ warning?: string } | void>;
   confirmMessage: string;
   className?: string;
 }) {
@@ -21,8 +21,9 @@ export function DeleteButton({
       disabled={pending}
       onClick={() => {
         if (!window.confirm(confirmMessage)) return;
-        startTransition(() => {
-          action(id);
+        startTransition(async () => {
+          const result = await action(id);
+          if (result?.warning) window.alert(result.warning);
         });
       }}
       className={`text-sm text-error hover:underline disabled:opacity-50 ${className}`}

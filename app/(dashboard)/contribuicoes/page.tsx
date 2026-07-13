@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { resolvePeriodoView } from "@/lib/periodo-navegacao";
 import { getContribuicoesDoPeriodo } from "@/lib/contribuicoes";
 import { ContribuicoesManager } from "@/components/features/contribuicoes-manager";
+import { PeriodoSync } from "@/components/features/periodo-sync";
 
 export default async function ContribuicoesPage({
   searchParams,
@@ -39,19 +40,22 @@ export default async function ContribuicoesPage({
     : [];
 
   return (
-    <ContribuicoesManager
-      contribuicoes={contribuicoes}
-      contas={contas ?? []}
-      periodoLabel={periodoView?.label ?? "Nenhum ciclo iniciado ainda"}
-      periodoNav={
-        periodoView
-          ? {
-              prevHref: periodoView.prevHref,
-              nextHref: periodoView.nextHref,
-              isProjetado: periodoView.isProjetado,
-            }
-          : null
-      }
-    />
+    <>
+      <PeriodoSync p={p ?? null} />
+      <ContribuicoesManager
+        contribuicoes={contribuicoes}
+        contas={contas ?? []}
+        periodoLabel={periodoView?.label ?? "Nenhum ciclo iniciado ainda"}
+        periodoNav={
+          periodoView
+            ? {
+                prevHref: periodoView.prevHref,
+                nextHref: periodoView.nextHref,
+                isProjetado: periodoView.isProjetado,
+              }
+            : null
+        }
+      />
+    </>
   );
 }

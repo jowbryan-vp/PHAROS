@@ -30,8 +30,14 @@ type Confirmacao = {
   dataSugerida: string | null;
 };
 
+/** Data de hoje no fuso local do usuário — não usar toISOString() aqui,
+ * que converte pra UTC e pode voltar/adiantar um dia dependendo do horário. */
 function todayISO() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 export function ReceitaForm({
@@ -50,6 +56,9 @@ export function ReceitaForm({
   const [state, action, pending] = useActionState(saveReceita, undefined);
   const [fonteId, setFonteId] = useState(
     receita?.fonte_receita_id ?? confirmacao?.fonteReceitaId ?? fontes[0]?.id ?? ""
+  );
+  const [dataRecebimento, setDataRecebimento] = useState(
+    receita?.data_recebimento ?? confirmacao?.dataSugerida ?? todayISO()
   );
   const [tributavel, setTributavel] = useState(
     receita
@@ -140,14 +149,20 @@ export function ReceitaForm({
             name="data_recebimento"
             type="date"
             required
-            defaultValue={
-              receita?.data_recebimento ??
-              confirmacao?.dataSugerida ??
-              todayISO()
-            }
+            max={todayISO()}
+            value={dataRecebimento}
+            onChange={(e) => setDataRecebimento(e.target.value)}
           />
         </div>
       </div>
+
+      {dataRecebimento > todayISO() && (
+        <p className="text-xs text-error">
+          Data de recebimento não pode ser futura — receitas representam um
+          valor já recebido. Para registrar uma expectativa futura, use a
+          confirmação de recebimento recorrente esperado.
+        </p>
+      )}
 
       <CheckboxField
         name="tributavel"
@@ -169,7 +184,15 @@ export function ReceitaForm({
 
       <FormMessage error={state?.error} />
       <div className="flex gap-2">
-        <Button type="submit" disabled={pending || fontes.length === 0 || contas.length === 0}>
+        <Button
+          type="submit"
+          disabled={
+            pending ||
+            fontes.length === 0 ||
+            contas.length === 0 ||
+            dataRecebimento > todayISO()
+          }
+        >
           {pending ? "Salvando..." : confirmacao ? "Confirmar recebimento" : "Salvar"}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>

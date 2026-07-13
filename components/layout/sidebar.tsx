@@ -1,7 +1,12 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  getStoredPeriodoParam,
+  subscribeStoredPeriodoParam,
+} from "@/lib/periodo-storage";
 
 const LINKS = [
   { label: "Início", href: "/dashboard" },
@@ -13,10 +18,19 @@ const LINKS = [
   { label: "Contribuições", href: "/contribuicoes" },
 ];
 
+/** Telas com navegação de período (?p=) — as únicas em que faz sentido
+ * propagar o período guardado ao trocar de tela pela sidebar. */
+const PERIODO_AWARE = new Set(["/dashboard", "/receitas", "/gastos-fixos", "/contribuicoes"]);
+
 const DISABLED_ITEMS = ["Cofrinhos"];
 
 export function Sidebar() {
   const pathname = usePathname();
+  const storedP = useSyncExternalStore(
+    subscribeStoredPeriodoParam,
+    getStoredPeriodoParam,
+    () => null
+  );
 
   return (
     <nav className="hidden w-56 shrink-0 border-r border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900 md:block">
@@ -24,10 +38,14 @@ export function Sidebar() {
         {LINKS.map((link) => {
           const active =
             pathname === link.href || pathname.startsWith(`${link.href}/`);
+          const href =
+            storedP && PERIODO_AWARE.has(link.href)
+              ? `${link.href}?p=${encodeURIComponent(storedP)}`
+              : link.href;
           return (
             <li key={link.href}>
               <Link
-                href={link.href}
+                href={href}
                 className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   active
                     ? "bg-brand/10 text-brand"

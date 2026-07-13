@@ -8,6 +8,7 @@ import {
   type ProjecaoGastoFixo,
 } from "@/lib/gastos-fixos";
 import { GastosFixosManager } from "@/components/features/gastos-fixos-manager";
+import { PeriodoSync } from "@/components/features/periodo-sync";
 
 export default async function GastosFixosPage({
   searchParams,
@@ -75,23 +76,26 @@ export default async function GastosFixosPage({
   }
 
   return (
-    <GastosFixosManager
-      gastosFixos={gastosRes.data ?? []}
-      categorias={categoriasRes.data ?? []}
-      contas={contasRes.data ?? []}
-      periodoLabel={periodoView?.label ?? "Nenhum ciclo iniciado ainda"}
-      periodoNav={
-        periodoView
-          ? {
-              prevHref: periodoView.prevHref,
-              nextHref: periodoView.nextHref,
-              isProjetado: periodoView.isProjetado,
-              isAtual: periodoView.isAtual,
-            }
-          : null
-      }
-      lancamentos={lancamentos}
-      projecao={projecao}
-    />
+    <>
+      <PeriodoSync p={p ?? null} />
+      <GastosFixosManager
+        gastosFixos={gastosRes.data ?? []}
+        categorias={categoriasRes.data ?? []}
+        contas={contasRes.data ?? []}
+        periodoLabel={periodoView?.label ?? "Nenhum ciclo iniciado ainda"}
+        periodoNav={
+          periodoView
+            ? {
+                prevHref: periodoView.prevHref,
+                nextHref: periodoView.nextHref,
+                isProjetado: periodoView.isProjetado,
+                isAtual: periodoView.isAtual,
+              }
+            : null
+        }
+        lancamentos={lancamentos}
+        projecao={projecao}
+      />
+    </>
   );
 }

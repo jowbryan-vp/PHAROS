@@ -43,6 +43,10 @@ export async function getPeriodoAtual(
     .select("id, data_inicio, data_fim")
     .eq("user_id", userId)
     .is("data_fim", null)
+    // Nunca considera "atual" um ciclo ancorado no futuro — só existe hoje
+    // por causa do bug de receita futura (Etapa 3), mas fica como salvaguarda
+    // permanente independente da causa.
+    .lte("data_inicio", toISODate(new Date()))
     .order("data_inicio", { ascending: false })
     .limit(1)
     .maybeSingle();

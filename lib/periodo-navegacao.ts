@@ -90,6 +90,8 @@ async function getCicloAberto(
     .select("id, data_inicio, data_fim")
     .eq("user_id", userId)
     .is("data_fim", null)
+    // Nunca considera "atual"/aberto um ciclo ancorado no futuro.
+    .lte("data_inicio", toISODate(new Date()))
     .order("data_inicio", { ascending: false })
     .limit(1)
     .maybeSingle();
