@@ -7,12 +7,43 @@
 | 3 — Receitas + Ciclo Financeiro (+ complementos: Receita Recorrente Esperada, Navegação entre Períodos) | Concluída | 2026-07-14 |
 | 4 — Cartões + Faturas | Concluída | 2026-07-13 |
 | 5 — Gastos Fixos Recorrentes | Concluída | 2026-07-13 |
-| Complemento — Reestruturação do Dashboard | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
+| Complemento — Reestruturação do Dashboard | Concluída | 2026-07-13 |
+| Correção — Pipeline de Deploy (Produção não seguia a `main`) | Concluída | 2026-07-13 |
 | 6 | Não iniciada | — |
 | 7 | Não iniciada | — |
 | 8 | Não iniciada | — |
 | 9 | Não iniciada | — |
 | 10 | Não iniciada | — |
+
+## Correção — Pipeline de Deploy (Produção não seguia a `main`)
+
+Depois de renomear a branch padrão do repositório para `main` e adotar o
+fluxo de branch + PR, os merges dos PR #1 (Etapa 5) e #2 (Reestruturação do
+Dashboard) geravam deploys marcados como **Preview** na Vercel, não
+Production — a Produção real continuava presa num commit antigo, exigindo
+"Promote to Production" manual no painel.
+
+**Causa raiz:** a configuração de Production Branch do projeto `pharos` na
+Vercel estava presa em `claude/pharos-stage-1-foundation-vdhaux` (a branch
+usada antes da migração pra `main`), e não sincronizou sozinha quando o
+default branch do repositório foi renomeado no GitHub — confirmado tanto
+pela API do GitHub (`default_branch: "main"`) quanto pelo aviso no painel
+da Vercel ("To update your Production Deployment, push to the
+`claude/pharos-stage-1-foundation-vdhaux` branch").
+
+**Correção aplicada** (manual, pelo usuário, no painel da Vercel — o campo
+de Production Branch não está mais exposto como um campo de texto separado
+em Settings → Git nesta versão da UI): em **Settings → Git**, no card
+"Connected Git Repository", **Disconnect** seguido de **reconectar** o
+mesmo repositório (`jowbryan-vp/PHAROS`). Isso força a Vercel a reler o
+repositório do zero e reconhecer `main` como Production Branch atual — sem
+apagar variáveis de ambiente ou deployments anteriores. Confirmado
+corrigido: o aviso no painel passou a dizer "push to the `main` branch", e
+`main` saiu da lista de "Active Branches" (que só lista branches que geram
+Preview).
+
+**Fluxo correto a partir de agora:** merge de PR na `main` → deploy de
+Produção automático na Vercel, sem necessidade de promoção manual.
 
 ## Complemento — Reestruturação do Dashboard
 
