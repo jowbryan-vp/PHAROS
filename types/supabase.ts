@@ -37,6 +37,9 @@ export type Database = {
           nome: string;
           is_principal: boolean;
           tributavel_padrao: boolean;
+          is_recorrente: boolean;
+          valor_esperado: number | null;
+          dia_esperado: number | null;
           criado_em: string;
         };
         Insert: {
@@ -45,6 +48,9 @@ export type Database = {
           nome: string;
           is_principal?: boolean;
           tributavel_padrao?: boolean;
+          is_recorrente?: boolean;
+          valor_esperado?: number | null;
+          dia_esperado?: number | null;
           criado_em?: string;
         };
         Update: {
@@ -53,6 +59,9 @@ export type Database = {
           nome?: string;
           is_principal?: boolean;
           tributavel_padrao?: boolean;
+          is_recorrente?: boolean;
+          valor_esperado?: number | null;
+          dia_esperado?: number | null;
           criado_em?: string;
         };
         Relationships: [];
@@ -211,6 +220,64 @@ export type Database = {
           {
             foreignKeyName: "ciclos_receita_ancora_id_fkey";
             columns: ["receita_ancora_id"];
+            isOneToOne: false;
+            referencedRelation: "receitas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      receitas_recorrentes_lancamentos: {
+        Row: {
+          id: string;
+          user_id: string;
+          fonte_receita_id: string;
+          ciclo_id: string | null;
+          periodo_referencia: string;
+          valor_esperado: number;
+          status: "pendente" | "recebido";
+          receita_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          fonte_receita_id: string;
+          ciclo_id?: string | null;
+          periodo_referencia: string;
+          valor_esperado: number;
+          status?: "pendente" | "recebido";
+          receita_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          fonte_receita_id?: string;
+          ciclo_id?: string | null;
+          periodo_referencia?: string;
+          valor_esperado?: number;
+          status?: "pendente" | "recebido";
+          receita_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "receitas_recorrentes_lancamentos_fonte_receita_id_fkey";
+            columns: ["fonte_receita_id"];
+            isOneToOne: false;
+            referencedRelation: "fontes_receita";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receitas_recorrentes_lancamentos_ciclo_id_fkey";
+            columns: ["ciclo_id"];
+            isOneToOne: false;
+            referencedRelation: "ciclos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receitas_recorrentes_lancamentos_receita_id_fkey";
+            columns: ["receita_id"];
             isOneToOne: false;
             referencedRelation: "receitas";
             referencedColumns: ["id"];

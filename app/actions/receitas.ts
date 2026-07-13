@@ -16,6 +16,9 @@ export async function saveReceita(
   const dataRecebimento = String(formData.get("data_recebimento") ?? "").trim();
   const tributavel = formData.get("tributavel") === "on";
   const observacao = String(formData.get("observacao") ?? "").trim();
+  const recorrenteLancamentoId = String(
+    formData.get("recorrente_lancamento_id") ?? ""
+  ).trim();
 
   if (!fonteReceitaId || !contaId || !dataRecebimento) {
     return { error: "Preencha fonte, conta e data de recebimento." };
@@ -53,11 +56,21 @@ export async function saveReceita(
 
     if (error) return { error: error.message };
   } else {
-    const { error } = await supabase
+    const { data: novaReceita, error } = await supabase
       .from("receitas")
-      .insert({ ...payload, user_id: user.id });
+      .insert({ ...payload, user_id: user.id })
+      .select("id")
+      .single();
 
     if (error) return { error: error.message };
+
+    if (recorrenteLancamentoId && novaReceita) {
+      await supabase
+        .from("receitas_recorrentes_lancamentos")
+        .update({ status: "recebido", receita_id: novaReceita.id })
+        .eq("id", recorrenteLancamentoId)
+        .eq("user_id", user.id);
+    }
   }
 
   revalidatePath("/receitas");

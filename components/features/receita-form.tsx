@@ -22,6 +22,14 @@ type Receita = {
   observacao: string | null;
 };
 
+/** Contexto de "Confirmar recebimento" de um lançamento recorrente pendente. */
+type Confirmacao = {
+  recorrenteLancamentoId: string;
+  fonteReceitaId: string;
+  valorEsperado: number;
+  dataSugerida: string | null;
+};
+
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -30,16 +38,18 @@ export function ReceitaForm({
   fontes,
   contas,
   receita,
+  confirmacao,
   onDone,
 }: {
   fontes: FonteReceita[];
   contas: Conta[];
   receita?: Receita;
+  confirmacao?: Confirmacao;
   onDone: () => void;
 }) {
   const [state, action, pending] = useActionState(saveReceita, undefined);
   const [fonteId, setFonteId] = useState(
-    receita?.fonte_receita_id ?? fontes[0]?.id ?? ""
+    receita?.fonte_receita_id ?? confirmacao?.fonteReceitaId ?? fontes[0]?.id ?? ""
   );
   const [tributavel, setTributavel] = useState(
     receita
@@ -64,13 +74,24 @@ export function ReceitaForm({
       className="flex flex-col gap-3 rounded-md border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-700 dark:bg-neutral-800"
     >
       {receita && <input type="hidden" name="id" value={receita.id} />}
+      {confirmacao && (
+        <input
+          type="hidden"
+          name="recorrente_lancamento_id"
+          value={confirmacao.recorrenteLancamentoId}
+        />
+      )}
 
       <div>
         <Label htmlFor="fonte_receita_id">Fonte de receita</Label>
+        {confirmacao && (
+          <input type="hidden" name="fonte_receita_id" value={fonteId} />
+        )}
         <Select
           id="fonte_receita_id"
-          name="fonte_receita_id"
+          name={confirmacao ? undefined : "fonte_receita_id"}
           required
+          disabled={Boolean(confirmacao)}
           value={fonteId}
           onChange={(e) => handleFonteChange(e.target.value)}
         >
@@ -108,7 +129,7 @@ export function ReceitaForm({
             step="0.01"
             min="0.01"
             required
-            defaultValue={receita?.valor}
+            defaultValue={receita?.valor ?? confirmacao?.valorEsperado}
             placeholder="0,00"
           />
         </div>
@@ -119,7 +140,11 @@ export function ReceitaForm({
             name="data_recebimento"
             type="date"
             required
-            defaultValue={receita?.data_recebimento ?? todayISO()}
+            defaultValue={
+              receita?.data_recebimento ??
+              confirmacao?.dataSugerida ??
+              todayISO()
+            }
           />
         </div>
       </div>
@@ -145,7 +170,7 @@ export function ReceitaForm({
       <FormMessage error={state?.error} />
       <div className="flex gap-2">
         <Button type="submit" disabled={pending || fontes.length === 0 || contas.length === 0}>
-          {pending ? "Salvando..." : "Salvar"}
+          {pending ? "Salvando..." : confirmacao ? "Confirmar recebimento" : "Salvar"}
         </Button>
         <Button type="button" variant="ghost" onClick={onDone}>
           Cancelar

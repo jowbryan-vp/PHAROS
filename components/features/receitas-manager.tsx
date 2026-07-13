@@ -21,6 +21,13 @@ type Receita = {
   fontes_receita: { nome: string } | null;
   contas: { nome: string } | null;
 };
+type Pendente = {
+  id: string;
+  fonte_receita_id: string;
+  valor_esperado: number;
+  nome_fonte: string;
+  dataSugerida: string | null;
+};
 
 function formatBRL(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -36,14 +43,19 @@ export function ReceitasManager({
   fontes,
   contas,
   periodoLabel,
+  pendentes,
+  totalEsperado,
 }: {
   receitas: Receita[];
   fontes: FonteReceita[];
   contas: Conta[];
   periodoLabel: string;
+  pendentes: Pendente[];
+  totalEsperado: number;
 }) {
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [confirmandoId, setConfirmandoId] = useState<string | null>(null);
 
   const podeLancar = fontes.length > 0 && contas.length > 0;
 
@@ -70,6 +82,56 @@ export function ReceitasManager({
           )}
         </div>
       </div>
+
+      {pendentes.length > 0 && (
+        <div className="rounded-lg border border-cta/40 bg-cta/5 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+              Esperado este período
+            </h2>
+            <span className="font-medium tabular-nums-feature text-neutral-900 dark:text-neutral-100">
+              {formatBRL(totalEsperado)}
+            </span>
+          </div>
+          <ul className="mt-3 flex flex-col gap-2">
+            {pendentes.map((pendente) =>
+              confirmandoId === pendente.id ? (
+                <li key={pendente.id}>
+                  <ReceitaForm
+                    fontes={fontes}
+                    contas={contas}
+                    confirmacao={{
+                      recorrenteLancamentoId: pendente.id,
+                      fonteReceitaId: pendente.fonte_receita_id,
+                      valorEsperado: pendente.valor_esperado,
+                      dataSugerida: pendente.dataSugerida,
+                    }}
+                    onDone={() => setConfirmandoId(null)}
+                  />
+                </li>
+              ) : (
+                <li
+                  key={pendente.id}
+                  className="flex items-center justify-between rounded-md bg-white px-3 py-2 dark:bg-neutral-900"
+                >
+                  <span className="text-sm text-neutral-800 dark:text-neutral-200">
+                    {pendente.nome_fonte} — esperado{" "}
+                    {formatBRL(pendente.valor_esperado)}
+                    {pendente.dataSugerida &&
+                      ` em ${formatDateBR(pendente.dataSugerida)}`}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setConfirmandoId(pendente.id)}
+                  >
+                    Confirmar recebimento
+                  </Button>
+                </li>
+              )
+            )}
+          </ul>
+        </div>
+      )}
 
       {!podeLancar && (
         <EmptyState

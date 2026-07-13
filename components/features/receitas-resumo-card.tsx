@@ -3,10 +3,12 @@ function formatBRL(valor: number) {
 }
 
 export function ReceitasResumoCard({
-  total,
+  totalRecebido,
+  totalEsperado,
   periodoLabel,
 }: {
-  total: number;
+  totalRecebido: number;
+  totalEsperado: number;
   periodoLabel: string;
 }) {
   return (
@@ -17,12 +19,24 @@ export function ReceitasResumoCard({
       <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
         {periodoLabel}
       </p>
-      <p className="mt-3 font-display text-3xl font-semibold tabular-nums-feature text-foreground">
-        {formatBRL(total)}
-      </p>
-      <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-        Total recebido no período
-      </p>
+      <div className="mt-3 grid grid-cols-2 gap-4">
+        <div>
+          <p className="font-display text-2xl font-semibold tabular-nums-feature text-foreground">
+            {formatBRL(totalRecebido)}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Recebido no período
+          </p>
+        </div>
+        <div>
+          <p className="font-display text-2xl font-semibold tabular-nums-feature text-brand">
+            {formatBRL(totalEsperado)}
+          </p>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Esperado (pendente)
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

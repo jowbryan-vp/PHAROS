@@ -6,6 +6,10 @@ import {
   formatPeriodoLabel,
   getTotalRecebidoNoPeriodo,
 } from "@/lib/periodo";
+import {
+  ensureRecorrentesDoPeriodo,
+  getTotalEsperadoNoPeriodo,
+} from "@/lib/recorrentes";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -34,17 +38,24 @@ export default async function DashboardPage() {
     profile?.modo_financeiro ?? null
   );
 
+  await ensureRecorrentesDoPeriodo(supabase, user!.id, periodo);
+
   const periodoLabel = periodo
     ? formatPeriodoLabel(periodo)
     : "Nenhum ciclo iniciado ainda";
 
-  const total = periodo
-    ? await getTotalRecebidoNoPeriodo(supabase, user!.id, periodo)
-    : 0;
+  const [totalRecebido, totalEsperado] = await Promise.all([
+    periodo ? getTotalRecebidoNoPeriodo(supabase, user!.id, periodo) : 0,
+    getTotalEsperadoNoPeriodo(supabase, user!.id, periodo),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
-      <ReceitasResumoCard total={total} periodoLabel={periodoLabel} />
+      <ReceitasResumoCard
+        totalRecebido={totalRecebido}
+        totalEsperado={totalEsperado}
+        periodoLabel={periodoLabel}
+      />
 
       {profile && (
         <ProfileRealtimeCard

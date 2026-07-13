@@ -13,9 +13,27 @@ export async function saveFonteReceita(
   const nome = String(formData.get("nome") ?? "").trim();
   const isPrincipal = formData.get("is_principal") === "on";
   const tributavelPadrao = formData.get("tributavel_padrao") === "on";
+  const isRecorrente = formData.get("is_recorrente") === "on";
+  const valorEsperadoRaw = String(formData.get("valor_esperado") ?? "").trim();
+  const diaEsperadoRaw = String(formData.get("dia_esperado") ?? "").trim();
 
   if (!nome) {
     return { error: "Informe um nome para a fonte de receita." };
+  }
+
+  let valorEsperado: number | null = null;
+  let diaEsperado: number | null = null;
+
+  if (isRecorrente) {
+    valorEsperado = Number(valorEsperadoRaw.replace(",", "."));
+    diaEsperado = Number(diaEsperadoRaw);
+
+    if (!Number.isFinite(valorEsperado) || valorEsperado <= 0) {
+      return { error: "Informe um valor esperado válido para a receita recorrente." };
+    }
+    if (!Number.isInteger(diaEsperado) || diaEsperado < 1 || diaEsperado > 31) {
+      return { error: "Informe um dia esperado entre 1 e 31." };
+    }
   }
 
   const supabase = await createClient();
@@ -27,25 +45,27 @@ export async function saveFonteReceita(
     return { error: "Sessão expirada. Faça login novamente." };
   }
 
+  const payload = {
+    nome,
+    is_principal: isPrincipal,
+    tributavel_padrao: tributavelPadrao,
+    is_recorrente: isRecorrente,
+    valor_esperado: valorEsperado,
+    dia_esperado: diaEsperado,
+  };
+
   if (id) {
     const { error } = await supabase
       .from("fontes_receita")
-      .update({
-        nome,
-        is_principal: isPrincipal,
-        tributavel_padrao: tributavelPadrao,
-      })
+      .update(payload)
       .eq("id", id)
       .eq("user_id", user.id);
 
     if (error) return { error: error.message };
   } else {
-    const { error } = await supabase.from("fontes_receita").insert({
-      user_id: user.id,
-      nome,
-      is_principal: isPrincipal,
-      tributavel_padrao: tributavelPadrao,
-    });
+    const { error } = await supabase
+      .from("fontes_receita")
+      .insert({ ...payload, user_id: user.id });
 
     if (error) return { error: error.message };
   }

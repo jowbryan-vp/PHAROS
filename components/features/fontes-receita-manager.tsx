@@ -12,7 +12,14 @@ type FonteReceita = {
   nome: string;
   is_principal: boolean;
   tributavel_padrao: boolean;
+  is_recorrente: boolean;
+  valor_esperado: number | null;
+  dia_esperado: number | null;
 };
+
+function formatBRL(valor: number) {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export function FontesReceitaManager({
   fontes,
@@ -69,11 +76,20 @@ export function FontesReceitaManager({
                       Principal
                     </span>
                   )}
+                  {fonte.is_recorrente && (
+                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-xs font-medium text-brand">
+                      Recorrente
+                    </span>
+                  )}
                 </div>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400">
                   {fonte.tributavel_padrao
                     ? "Tributável por padrão"
                     : "Não tributável por padrão"}
+                  {fonte.is_recorrente &&
+                    fonte.valor_esperado &&
+                    fonte.dia_esperado &&
+                    ` · ${formatBRL(fonte.valor_esperado)} esperado todo dia ${fonte.dia_esperado}`}
                 </p>
               </div>
               <div className="flex items-center gap-4">

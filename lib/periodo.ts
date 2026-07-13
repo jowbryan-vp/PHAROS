@@ -5,6 +5,8 @@ export type Periodo = {
   modo: ModoFinanceiro;
   dataInicio: string;
   dataFim: string | null;
+  /** Só presente em modo "ciclo" — id da linha em `ciclos`. */
+  cicloId?: string;
 };
 
 function toISODate(date: Date): string {
@@ -38,7 +40,7 @@ export async function getPeriodoAtual(
 
   const { data: ciclo } = await supabase
     .from("ciclos")
-    .select("data_inicio, data_fim")
+    .select("id, data_inicio, data_fim")
     .eq("user_id", userId)
     .is("data_fim", null)
     .order("data_inicio", { ascending: false })
@@ -47,7 +49,12 @@ export async function getPeriodoAtual(
 
   if (!ciclo) return null;
 
-  return { modo: "ciclo", dataInicio: ciclo.data_inicio, dataFim: ciclo.data_fim };
+  return {
+    modo: "ciclo",
+    dataInicio: ciclo.data_inicio,
+    dataFim: ciclo.data_fim,
+    cicloId: ciclo.id,
+  };
 }
 
 function formatDateBR(iso: string): string {

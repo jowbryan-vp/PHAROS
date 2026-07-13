@@ -10,7 +10,9 @@ export default async function FontesReceitaPage() {
 
   const { data: fontes } = await supabase
     .from("fontes_receita")
-    .select("id, nome, is_principal, tributavel_padrao")
+    .select(
+      "id, nome, is_principal, tributavel_padrao, is_recorrente, valor_esperado, dia_esperado"
+    )
     .eq("user_id", user!.id)
     .order("criado_em", { ascending: true });
 
