@@ -9,6 +9,7 @@ const PROTECTED_PREFIXES = [
   "/contas",
   "/categorias",
   "/cartoes",
+  "/gastos-fixos",
 ];
 const AUTH_PREFIXES = ["/login", "/cadastro", "/recuperar-senha"];
 
