@@ -9,11 +9,53 @@
 | 5 — Gastos Fixos Recorrentes | Concluída | 2026-07-13 |
 | Complemento — Reestruturação do Dashboard | Concluída | 2026-07-13 |
 | Correção — Pipeline de Deploy (Produção não seguia a `main`) | Concluída | 2026-07-13 |
-| 6 | Não iniciada | — |
+| 6 — Contribuição | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
 | 7 | Não iniciada | — |
 | 8 | Não iniciada | — |
 | 9 | Não iniciada | — |
 | 10 | Não iniciada | — |
+
+## Etapa 6 — Contribuição
+
+Toda receita lançada com `tributavel = true` gera automaticamente uma
+contribuição `comprometida` via trigger `trg_receita_gera_contribuicao`
+(`AFTER INSERT on receitas`) — mesmo padrão de trigger reativo já usado nas
+etapas anteriores (ciclo, receitas recorrentes, gastos fixos). O trigger lê
+`profiles.percentual_contribuicao` **no momento do insert** e grava
+`valor_sugerido = round(valor da receita × percentual / 100, 2)`;
+`valor_final` nasce igual ao sugerido. Como o percentual é lido e congelado
+nesse instante (não há referência viva ao perfil depois disso), mudar o
+percentual no `/perfil` não recalcula contribuições já existentes — vale só
+para receitas lançadas a partir da mudança, exatamente como pedido no
+escopo.
+
+`valor_final` só pode ser editado enquanto `status = 'comprometido'` — a
+trava é reforçada tanto na action (`editarValorFinal`, com `.eq("status",
+"comprometido")` na query) quanto na UI (a ação "Editar valor" some assim
+que a contribuição aparece como paga). "Marcar como paga" pede conta e data
+sem nenhuma pré-seleção de conta (diferente de Gastos Fixos e Faturas, que
+têm conta padrão) — reflete o fato de a contribuição não estar amarrada a
+uma conta fixa.
+
+Diferente de `receitas_recorrentes_lancamentos` e
+`gastos_fixos_lancamentos`, `contribuicoes` não tem `periodo_referencia`
+nem `ciclo_id` próprios — ela nasce sempre atrelada a uma receita já
+lançada (nunca projetada), então a navegação por período em
+`/contribuicoes` e no card do Dashboard filtra pela `data_recebimento` da
+receita de origem (`lib/contribuicoes.ts`, mesma técnica de filtro por data
+via join usada em `getResumoFaturasDoPeriodo` na Etapa 4/complemento do
+Dashboard). Por isso também não há projeção para períodos futuros aqui —
+contribuição é sempre dado real, nunca estimativa.
+
+**Pendência desta etapa:** o conector MCP do Supabase não estava disponível
+nesta sessão, então a migration (`20260716120000_contribuicao.sql`) foi
+escrita e revisada manualmente, seguindo a mesma estrutura de RLS/trigger
+já testada ao vivo nas Etapas 3-4 (mesmo assim, **não foi aplicada nem
+testada em produção** desta vez). A fórmula de arredondamento do
+`valor_sugerido` foi validada localmente em Node contra alguns casos de
+borda (percentuais fracionários, valores que caem exatamente em .5
+centavos). Build e lint passam localmente. Recomendo aplicar a migration e
+validar RLS/trigger antes ou logo depois do merge do PR.
 
 ## Correção — Pipeline de Deploy (Produção não seguia a `main`)
 

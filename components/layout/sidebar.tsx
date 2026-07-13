@@ -10,6 +10,7 @@ const LINKS = [
   { label: "Categorias", href: "/categorias" },
   { label: "Cartões", href: "/cartoes" },
   { label: "Gastos Fixos", href: "/gastos-fixos" },
+  { label: "Contribuições", href: "/contribuicoes" },
 ];
 
 const DISABLED_ITEMS = ["Cofrinhos"];

@@ -14,6 +14,7 @@ import {
   getProjecaoGastosFixos,
 } from "@/lib/gastos-fixos";
 import { ensureFaturasAtualizadas, getResumoFaturasDoPeriodo } from "@/lib/faturas";
+import { getResumoContribuicaoDoPeriodo } from "@/lib/contribuicoes";
 
 function formatBRL(valor: number) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -96,6 +97,11 @@ export default async function DashboardPage({
   }
 
   const resumoFaturas = await getResumoFaturasDoPeriodo(supabase, user!.id, periodoView);
+  const resumoContribuicao = await getResumoContribuicaoDoPeriodo(
+    supabase,
+    user!.id,
+    periodoView
+  );
 
   return (
     <div className="flex flex-col gap-6">
@@ -146,9 +152,19 @@ export default async function DashboardPage({
         <DashboardCard label="Fixos pagos" value={formatBRL(totalGastosPago)} />
       </DashboardSection>
 
+      <DashboardSection title="Contribuição">
+        <DashboardCard
+          label="Contribuição comprometida"
+          value={formatBRL(resumoContribuicao.totalComprometido)}
+          tone="highlight"
+        />
+        <DashboardCard
+          label="Contribuição paga"
+          value={formatBRL(resumoContribuicao.totalPago)}
+        />
+      </DashboardSection>
+
       {/*
-        Etapa 6 (Contribuição): nova <DashboardSection title="Contribuição">
-        entra aqui.
         Etapa 7 (Cofrinhos): nova <DashboardSection title="Cofrinhos"> entra
         aqui.
         Etapa 9 (Motor de Previsão): card de Saldo Projetado — provavelmente

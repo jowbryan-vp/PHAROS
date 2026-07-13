@@ -12,7 +12,7 @@ export default async function PerfilPage() {
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, nome, modo_financeiro, onboarding_completo")
+        .select("id, nome, modo_financeiro, onboarding_completo, percentual_contribuicao")
         .eq("id", user!.id)
         .single(),
       supabase

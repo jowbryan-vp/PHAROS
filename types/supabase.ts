@@ -10,6 +10,7 @@ export type Database = {
           email: string | null;
           modo_financeiro: ModoFinanceiro | null;
           onboarding_completo: boolean;
+          percentual_contribuicao: number;
           criado_em: string;
         };
         Insert: {
@@ -18,6 +19,7 @@ export type Database = {
           email?: string | null;
           modo_financeiro?: ModoFinanceiro | null;
           onboarding_completo?: boolean;
+          percentual_contribuicao?: number;
           criado_em?: string;
         };
         Update: {
@@ -26,6 +28,7 @@ export type Database = {
           email?: string | null;
           modo_financeiro?: ModoFinanceiro | null;
           onboarding_completo?: boolean;
+          percentual_contribuicao?: number;
           criado_em?: string;
         };
         Relationships: [];
@@ -546,6 +549,57 @@ export type Database = {
           },
           {
             foreignKeyName: "gastos_fixos_lancamentos_conta_pagamento_id_fkey";
+            columns: ["conta_pagamento_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      contribuicoes: {
+        Row: {
+          id: string;
+          user_id: string;
+          receita_id: string;
+          valor_sugerido: number;
+          valor_final: number;
+          status: "comprometido" | "pago";
+          data_pagamento: string | null;
+          conta_pagamento_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          receita_id: string;
+          valor_sugerido: number;
+          valor_final: number;
+          status?: "comprometido" | "pago";
+          data_pagamento?: string | null;
+          conta_pagamento_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          receita_id?: string;
+          valor_sugerido?: number;
+          valor_final?: number;
+          status?: "comprometido" | "pago";
+          data_pagamento?: string | null;
+          conta_pagamento_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "contribuicoes_receita_id_fkey";
+            columns: ["receita_id"];
+            isOneToOne: false;
+            referencedRelation: "receitas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "contribuicoes_conta_pagamento_id_fkey";
             columns: ["conta_pagamento_id"];
             isOneToOne: false;
             referencedRelation: "contas";
