@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReceitasManager } from "@/components/features/receitas-manager";
+import { PeriodoSync } from "@/components/features/periodo-sync";
 import { resolvePeriodoView, getProjecaoRecorrentes } from "@/lib/periodo-navegacao";
 import { ensureRecorrentesDoPeriodo, getPendentesDoPeriodo } from "@/lib/recorrentes";
 
@@ -43,17 +44,20 @@ export default async function ReceitasLancamentosPage({
 
   if (!periodoView) {
     return (
-      <ReceitasManager
-        receitas={[]}
-        fontes={fontesRes.data ?? []}
-        contas={contasRes.data ?? []}
-        periodoLabel="Nenhum ciclo iniciado ainda — o primeiro lançamento da fonte principal vai abrir o ciclo."
-        periodoNav={null}
-        pendentes={[]}
-        pendentesConfirmaveis={false}
-        totalRecebido={0}
-        totalEsperado={0}
-      />
+      <>
+        <PeriodoSync p={p ?? null} />
+        <ReceitasManager
+          receitas={[]}
+          fontes={fontesRes.data ?? []}
+          contas={contasRes.data ?? []}
+          periodoLabel="Nenhum ciclo iniciado ainda — o primeiro lançamento da fonte principal vai abrir o ciclo."
+          periodoNav={null}
+          pendentes={[]}
+          pendentesConfirmaveis={false}
+          totalRecebido={0}
+          totalEsperado={0}
+        />
+      </>
     );
   }
 
@@ -127,21 +131,24 @@ export default async function ReceitasLancamentosPage({
   const totalEsperado = pendentes.reduce((sum, p) => sum + p.valor_esperado, 0);
 
   return (
-    <ReceitasManager
-      receitas={receitas}
-      fontes={fontesRes.data ?? []}
-      contas={contasRes.data ?? []}
-      periodoLabel={periodoView.label}
-      periodoNav={{
-        prevHref: periodoView.prevHref,
-        nextHref: periodoView.nextHref,
-        isProjetado: periodoView.isProjetado,
-        isAtual: periodoView.isAtual,
-      }}
-      pendentes={pendentes}
-      pendentesConfirmaveis={periodoView.isAtual}
-      totalRecebido={totalRecebido}
-      totalEsperado={totalEsperado}
-    />
+    <>
+      <PeriodoSync p={p ?? null} />
+      <ReceitasManager
+        receitas={receitas}
+        fontes={fontesRes.data ?? []}
+        contas={contasRes.data ?? []}
+        periodoLabel={periodoView.label}
+        periodoNav={{
+          prevHref: periodoView.prevHref,
+          nextHref: periodoView.nextHref,
+          isProjetado: periodoView.isProjetado,
+          isAtual: periodoView.isAtual,
+        }}
+        pendentes={pendentes}
+        pendentesConfirmaveis={periodoView.isAtual}
+        totalRecebido={totalRecebido}
+        totalEsperado={totalEsperado}
+      />
+    </>
   );
 }

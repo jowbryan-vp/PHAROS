@@ -9,11 +9,91 @@
 | 5 — Gastos Fixos Recorrentes | Concluída | 2026-07-13 |
 | Complemento — Reestruturação do Dashboard | Concluída | 2026-07-13 |
 | Correção — Pipeline de Deploy (Produção não seguia a `main`) | Concluída | 2026-07-13 |
-| 6 — Contribuição | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
+| 6 — Contribuição | Concluída | 2026-07-13 |
+| Correções — Bugs encontrados em teste (Etapas 5/6) | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
 | 7 | Não iniciada | — |
 | 8 | Não iniciada | — |
 | 9 | Não iniciada | — |
 | 10 | Não iniciada | — |
+
+## Correções — Bugs encontrados em teste (depois das Etapas 5/6)
+
+**Bug 1 — Navegação de período resetava ao trocar de tela.** Os links da
+sidebar apontavam pra rotas puras (`/receitas`, `/dashboard`, ...) sem
+carregar o `?p=` atual, e não havia nenhum estado compartilhado entre telas
+que não usam período (ex: Cartões) — então atravessar uma dessas telas
+também perdia a referência. Corrigido com `lib/periodo-storage.ts`
+(localStorage + pub/sub) e um componente invisível `PeriodoSync`, montado
+nas 4 telas com navegação de período (Dashboard, Receitas, Gastos Fixos,
+Contribuições), que grava o `p` atual a cada mudança. A Sidebar lê esse
+valor via `useSyncExternalStore` (reativo a mudanças de qualquer
+componente na mesma aba, sem `setState` em efeito) e anexa `?p=` só nos
+links de telas period-aware.
+
+**Bug 2 — Campo de data não aceitava o valor no formulário de Nova
+Receita.** O input de data era não controlado (`defaultValue`); trocado
+para controlado (`value`/`onChange` com estado próprio), o que também
+serviu de base pra validação de data futura do Bug 3. De quebra, a função
+`todayISO()` local ao formulário usava `toISOString()` (UTC), que pode
+voltar/adiantar um dia dependendo do fuso e horário do usuário — trocada
+por uma versão baseada em `getFullYear/getMonth/getDate` (fuso local).
+
+**Bug 3 — Receita futura fechava o ciclo indevidamente + corrupção de
+dado.**
+- *Prevenção*: `data_recebimento` no formulário de Nova Receita agora tem
+  `max` = hoje, aviso inline e bloqueio de envio (client) **e** validação
+  espelhada em `saveReceita` (server, `app/actions/receitas.ts` — a
+  autoridade real, já que o `max` do input é só UX).
+- *Determinação de "ciclo atual"*: `getPeriodoAtual` (`lib/periodo.ts`) e
+  `getCicloAberto` (`lib/periodo-navegacao.ts`) agora exigem
+  `data_inicio <= hoje` — nunca mais tratam um ciclo ancorado no futuro
+  como atual, independente de como ele foi parar lá.
+- *Integridade ao excluir*: `deleteReceita` agora verifica se a receita é
+  âncora de algum ciclo. Se for o ciclo **aberto** (`data_fim` null) e não
+  houver nenhum outro lançamento dependente dentro dele (outras receitas
+  no intervalo, `receitas_recorrentes_lancamentos` ou
+  `gastos_fixos_lancamentos` com esse `ciclo_id`), o ciclo órfão é
+  removido e o ciclo anterior é reaberto (`data_fim = null`) — restaurando
+  o "em andamento". Se o ciclo já tiver dependentes, ou já estiver fechado
+  por um lançamento mais recente, a receita é excluída normalmente mas o
+  ciclo não é tocado, e o usuário recebe um aviso (via `window.alert`,
+  `DeleteButton` agora aceita ações que retornam `{ warning?: string }`)
+  pra revisar manualmente.
+- *Conserto do dado já corrompido em produção*: **não aplicado nesta
+  sessão** — o conector MCP do Supabase não estava disponível. Script de
+  diagnóstico e correção (repassado ao usuário para rodar manualmente no
+  SQL Editor, ou para aplicar assim que o conector estiver disponível):
+
+  ```sql
+  -- 1. Diagnóstico
+  select id, user_id, data_inicio, data_fim, receita_ancora_id, criado_em
+  from public.ciclos
+  where user_id = '<USER_ID>'
+  order by data_inicio desc;
+
+  -- O ciclo órfão deve aparecer com data_fim IS NULL, receita_ancora_id IS
+  -- NULL (a FK é "on delete set null") e data_inicio no futuro. O ciclo
+  -- legítimo é o de data_inicio = '2026-06-26', hoje fechado indevidamente.
+
+  -- 2. Remover o ciclo órfão
+  delete from public.ciclos
+  where id = '<CICLO_ORFAO_ID>' and user_id = '<USER_ID>';
+
+  -- 3. Reabrir o ciclo legítimo
+  update public.ciclos
+  set data_fim = null
+  where user_id = '<USER_ID>' and data_inicio = '2026-06-26';
+  ```
+
+**Bug 4 — Card de Contribuição "sumido" do Dashboard** e **Bug 5 — Acesso
+a Perfil "sumido" do header**: investigados e **não eram bugs de
+código** — `dashboard/page.tsx` já tem a `DashboardSection title=
+"Contribuição"` (adicionada na Etapa 6) e `components/layout/header.tsx`
+já renderiza `<UserMenu email={...} />` incondicionalmente, com o dropdown
+"Perfil"/"Sair" intacto. O mais provável é o teste ter batido numa
+implantação desatualizada ou num cache de navegador antes do merge da
+Etapa 6 ir ao ar — vale reconferir depois de um hard refresh / novo deploy
+de produção antes de reabrir como bug.
 
 ## Etapa 6 — Contribuição
 

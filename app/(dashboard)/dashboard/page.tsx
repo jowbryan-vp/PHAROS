@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { PeriodoSync } from "@/components/features/periodo-sync";
 import { DashboardPeriodoNav } from "@/components/features/dashboard-periodo-nav";
 import { DashboardCard, DashboardSection } from "@/components/features/dashboard-card";
 import { getTotalRecebidoNoPeriodo } from "@/lib/periodo";
@@ -105,6 +106,7 @@ export default async function DashboardPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <PeriodoSync p={p ?? null} />
       <DashboardPeriodoNav
         periodoLabel={periodoLabel}
         periodoNav={
