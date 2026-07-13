@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabase/server";
 import { ProfileRealtimeCard } from "@/components/features/profile-realtime-card";
+import { ReceitasResumoCard } from "@/components/features/receitas-resumo-card";
+import {
+  getPeriodoAtual,
+  formatPeriodoLabel,
+  getTotalRecebidoNoPeriodo,
+} from "@/lib/periodo";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -8,25 +14,44 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, nome, modo_financeiro, onboarding_completo")
-    .eq("id", user!.id)
-    .single();
+  const [{ data: profile }, { count: fontesPrincipaisCount }] =
+    await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id, nome, modo_financeiro, onboarding_completo")
+        .eq("id", user!.id)
+        .single(),
+      supabase
+        .from("fontes_receita")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("is_principal", true),
+    ]);
+
+  const periodo = await getPeriodoAtual(
+    supabase,
+    user!.id,
+    profile?.modo_financeiro ?? null
+  );
+
+  const periodoLabel = periodo
+    ? formatPeriodoLabel(periodo)
+    : "Nenhum ciclo iniciado ainda";
+
+  const total = periodo
+    ? await getTotalRecebidoNoPeriodo(supabase, user!.id, periodo)
+    : 0;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg border border-dashed border-neutral-300 bg-white p-10 text-center dark:border-neutral-700 dark:bg-neutral-900">
-        <h1 className="font-display text-lg font-semibold text-foreground">
-          Em construção
-        </h1>
-        <p className="mt-2 text-sm text-neutral-500 dark:text-neutral-400">
-          As funcionalidades financeiras (receitas, contas, cartões,
-          cofrinhos, ciclo financeiro) chegam nas próximas etapas.
-        </p>
-      </div>
+      <ReceitasResumoCard total={total} periodoLabel={periodoLabel} />
 
-      {profile && <ProfileRealtimeCard profile={profile} />}
+      {profile && (
+        <ProfileRealtimeCard
+          profile={profile}
+          hasPrincipalFonte={(fontesPrincipaisCount ?? 0) > 0}
+        />
+      )}
     </div>
   );
 }

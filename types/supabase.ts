@@ -131,6 +131,92 @@ export type Database = {
           },
         ];
       };
+      receitas: {
+        Row: {
+          id: string;
+          user_id: string;
+          fonte_receita_id: string;
+          conta_id: string;
+          valor: number;
+          data_recebimento: string;
+          tributavel: boolean;
+          observacao: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          fonte_receita_id: string;
+          conta_id: string;
+          valor: number;
+          data_recebimento: string;
+          tributavel: boolean;
+          observacao?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          fonte_receita_id?: string;
+          conta_id?: string;
+          valor?: number;
+          data_recebimento?: string;
+          tributavel?: boolean;
+          observacao?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "receitas_fonte_receita_id_fkey";
+            columns: ["fonte_receita_id"];
+            isOneToOne: false;
+            referencedRelation: "fontes_receita";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "receitas_conta_id_fkey";
+            columns: ["conta_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ciclos: {
+        Row: {
+          id: string;
+          user_id: string;
+          data_inicio: string;
+          data_fim: string | null;
+          receita_ancora_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          data_inicio: string;
+          data_fim?: string | null;
+          receita_ancora_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          data_inicio?: string;
+          data_fim?: string | null;
+          receita_ancora_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ciclos_receita_ancora_id_fkey";
+            columns: ["receita_ancora_id"];
+            isOneToOne: false;
+            referencedRelation: "receitas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;

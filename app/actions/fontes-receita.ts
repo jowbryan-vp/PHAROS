@@ -50,7 +50,9 @@ export async function saveFonteReceita(
     if (error) return { error: error.message };
   }
 
+  revalidatePath("/fontes-receita");
   revalidatePath("/receitas");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteFonteReceita(id: string) {
@@ -67,5 +69,7 @@ export async function deleteFonteReceita(id: string) {
     .eq("id", id)
     .eq("user_id", user.id);
 
+  revalidatePath("/fontes-receita");
   revalidatePath("/receitas");
+  revalidatePath("/dashboard");
 }
