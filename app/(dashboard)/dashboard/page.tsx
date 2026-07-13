@@ -1,17 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import { ProfileRealtimeCard } from "@/components/features/profile-realtime-card";
 import { ReceitasResumoCard } from "@/components/features/receitas-resumo-card";
-import {
-  getPeriodoAtual,
-  formatPeriodoLabel,
-  getTotalRecebidoNoPeriodo,
-} from "@/lib/periodo";
+import { getTotalRecebidoNoPeriodo } from "@/lib/periodo";
+import { resolvePeriodoView, getProjecaoRecorrentes } from "@/lib/periodo-navegacao";
 import {
   ensureRecorrentesDoPeriodo,
   getTotalEsperadoNoPeriodo,
+  getPendentesDoPeriodo,
 } from "@/lib/recorrentes";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ p?: string }>;
+}) {
+  const { p } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -32,22 +35,45 @@ export default async function DashboardPage() {
         .eq("is_principal", true),
     ]);
 
-  const periodo = await getPeriodoAtual(
+  const periodoView = await resolvePeriodoView(
     supabase,
     user!.id,
-    profile?.modo_financeiro ?? null
+    profile?.modo_financeiro ?? null,
+    p
   );
 
-  await ensureRecorrentesDoPeriodo(supabase, user!.id, periodo);
+  let totalRecebido = 0;
+  let totalEsperado = 0;
+  const periodoLabel = periodoView?.label ?? "Nenhum ciclo iniciado ainda";
 
-  const periodoLabel = periodo
-    ? formatPeriodoLabel(periodo)
-    : "Nenhum ciclo iniciado ainda";
+  if (periodoView) {
+    if (periodoView.isAtual) {
+      await ensureRecorrentesDoPeriodo(supabase, user!.id, periodoView);
+    }
 
-  const [totalRecebido, totalEsperado] = await Promise.all([
-    periodo ? getTotalRecebidoNoPeriodo(supabase, user!.id, periodo) : 0,
-    getTotalEsperadoNoPeriodo(supabase, user!.id, periodo),
-  ]);
+    if (!periodoView.isProjetado) {
+      totalRecebido = await getTotalRecebidoNoPeriodo(
+        supabase,
+        user!.id,
+        periodoView
+      );
+      totalEsperado = periodoView.isAtual
+        ? await getTotalEsperadoNoPeriodo(supabase, user!.id, periodoView)
+        : 0;
+    } else {
+      const reais = await getPendentesDoPeriodo(supabase, user!.id, periodoView);
+      if (reais.length > 0) {
+        totalEsperado = reais.reduce((sum, r) => sum + r.valor_esperado, 0);
+      } else {
+        const projecao = await getProjecaoRecorrentes(
+          supabase,
+          user!.id,
+          periodoView.dataInicio
+        );
+        totalEsperado = projecao.reduce((sum, r) => sum + r.valorEsperado, 0);
+      }
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -55,6 +81,15 @@ export default async function DashboardPage() {
         totalRecebido={totalRecebido}
         totalEsperado={totalEsperado}
         periodoLabel={periodoLabel}
+        periodoNav={
+          periodoView
+            ? {
+                prevHref: periodoView.prevHref,
+                nextHref: periodoView.nextHref,
+                isProjetado: periodoView.isProjetado,
+              }
+            : null
+        }
       />
 
       {profile && (

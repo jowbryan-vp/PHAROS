@@ -1,9 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import { ReceitasManager } from "@/components/features/receitas-manager";
-import { getPeriodoAtual, formatPeriodoLabel } from "@/lib/periodo";
-import { ensureRecorrentesDoPeriodo, computeDataEsperada } from "@/lib/recorrentes";
+import { resolvePeriodoView, getProjecaoRecorrentes } from "@/lib/periodo-navegacao";
+import { ensureRecorrentesDoPeriodo, getPendentesDoPeriodo } from "@/lib/recorrentes";
 
-export default async function ReceitasLancamentosPage() {
+export default async function ReceitasLancamentosPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ p?: string }>;
+}) {
+  const { p } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -16,30 +21,14 @@ export default async function ReceitasLancamentosPage() {
     .eq("id", user!.id)
     .single();
 
-  const periodo = await getPeriodoAtual(
+  const periodoView = await resolvePeriodoView(
     supabase,
     user!.id,
-    profile?.modo_financeiro ?? null
+    profile?.modo_financeiro ?? null,
+    p
   );
 
-  await ensureRecorrentesDoPeriodo(supabase, user!.id, periodo);
-
-  const pendentesQuery = periodo
-    ? (() => {
-        const q = supabase
-          .from("receitas_recorrentes_lancamentos")
-          .select(
-            "id, fonte_receita_id, valor_esperado, periodo_referencia, fontes_receita(nome, dia_esperado)"
-          )
-          .eq("user_id", user!.id)
-          .eq("status", "pendente");
-        return periodo.modo === "ciclo" && periodo.cicloId
-          ? q.eq("ciclo_id", periodo.cicloId)
-          : q.is("ciclo_id", null).eq("periodo_referencia", periodo.dataInicio);
-      })()
-    : null;
-
-  const [fontesRes, contasRes, receitasRes, pendentesRes] = await Promise.all([
+  const [fontesRes, contasRes] = await Promise.all([
     supabase
       .from("fontes_receita")
       .select("id, nome, tributavel_padrao")
@@ -50,41 +39,108 @@ export default async function ReceitasLancamentosPage() {
       .select("id, nome")
       .eq("user_id", user!.id)
       .order("criado_em", { ascending: true }),
-    supabase
+  ]);
+
+  if (!periodoView) {
+    return (
+      <ReceitasManager
+        receitas={[]}
+        fontes={fontesRes.data ?? []}
+        contas={contasRes.data ?? []}
+        periodoLabel="Nenhum ciclo iniciado ainda — o primeiro lançamento da fonte principal vai abrir o ciclo."
+        periodoNav={null}
+        pendentes={[]}
+        pendentesConfirmaveis={false}
+        totalRecebido={0}
+        totalEsperado={0}
+      />
+    );
+  }
+
+  if (periodoView.isAtual) {
+    await ensureRecorrentesDoPeriodo(supabase, user!.id, periodoView);
+  }
+
+  let receitas: Array<{
+    id: string;
+    fonte_receita_id: string;
+    conta_id: string;
+    valor: number;
+    data_recebimento: string;
+    tributavel: boolean;
+    observacao: string | null;
+    fontes_receita: { nome: string } | null;
+    contas: { nome: string } | null;
+  }> = [];
+
+  let pendentes: Array<{
+    id: string;
+    fonte_receita_id: string;
+    valor_esperado: number;
+    nome_fonte: string;
+    dataSugerida: string | null;
+  }> = [];
+
+  if (!periodoView.isProjetado) {
+    let receitasQuery = supabase
       .from("receitas")
       .select(
         "id, fonte_receita_id, conta_id, valor, data_recebimento, tributavel, observacao, fontes_receita(nome), contas(nome)"
       )
       .eq("user_id", user!.id)
+      .gte("data_recebimento", periodoView.dataInicio);
+
+    if (periodoView.dataFim) {
+      receitasQuery = receitasQuery.lte("data_recebimento", periodoView.dataFim);
+    }
+
+    const { data } = await receitasQuery
       .order("data_recebimento", { ascending: false })
-      .order("criado_em", { ascending: false }),
-    pendentesQuery,
-  ]);
+      .order("criado_em", { ascending: false });
 
-  const periodoLabel = periodo
-    ? formatPeriodoLabel(periodo)
-    : "Nenhum ciclo iniciado ainda — o primeiro lançamento da fonte principal vai abrir o ciclo.";
+    receitas = data ?? [];
 
-  const pendentes = (pendentesRes?.data ?? []).map((p) => ({
-    id: p.id,
-    fonte_receita_id: p.fonte_receita_id,
-    valor_esperado: p.valor_esperado,
-    nome_fonte: p.fontes_receita?.nome ?? "",
-    dataSugerida: computeDataEsperada(
-      p.periodo_referencia,
-      p.fontes_receita?.dia_esperado ?? null
-    ),
-  }));
+    if (periodoView.isAtual) {
+      pendentes = await getPendentesDoPeriodo(supabase, user!.id, periodoView);
+    }
+  } else {
+    const reais = await getPendentesDoPeriodo(supabase, user!.id, periodoView);
+    if (reais.length > 0) {
+      pendentes = reais;
+    } else {
+      const projecao = await getProjecaoRecorrentes(
+        supabase,
+        user!.id,
+        periodoView.dataInicio
+      );
+      pendentes = projecao.map((proj, i) => ({
+        id: `projecao-${i}`,
+        fonte_receita_id: proj.fonteReceitaId,
+        valor_esperado: proj.valorEsperado,
+        nome_fonte: proj.nomeFonte,
+        dataSugerida: proj.dataSugerida,
+      }));
+    }
+  }
 
+  const totalRecebido = receitas.reduce((sum, r) => sum + r.valor, 0);
   const totalEsperado = pendentes.reduce((sum, p) => sum + p.valor_esperado, 0);
 
   return (
     <ReceitasManager
-      receitas={receitasRes.data ?? []}
+      receitas={receitas}
       fontes={fontesRes.data ?? []}
       contas={contasRes.data ?? []}
-      periodoLabel={periodoLabel}
+      periodoLabel={periodoView.label}
+      periodoNav={{
+        prevHref: periodoView.prevHref,
+        nextHref: periodoView.nextHref,
+        isProjetado: periodoView.isProjetado,
+        isAtual: periodoView.isAtual,
+      }}
       pendentes={pendentes}
+      pendentesConfirmaveis={periodoView.isAtual}
+      totalRecebido={totalRecebido}
       totalEsperado={totalEsperado}
     />
   );

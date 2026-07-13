@@ -6,10 +6,10 @@ export type Periodo = {
   dataInicio: string;
   dataFim: string | null;
   /** Só presente em modo "ciclo" — id da linha em `ciclos`. */
-  cicloId?: string;
+  cicloId?: string | null;
 };
 
-function toISODate(date: Date): string {
+export function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
@@ -57,12 +57,12 @@ export async function getPeriodoAtual(
   };
 }
 
-function formatDateBR(iso: string): string {
+export function formatDateBR(iso: string): string {
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
 }
 
-const MESES = [
+export const MESES = [
   "janeiro",
   "fevereiro",
   "março",

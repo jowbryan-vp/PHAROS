@@ -80,6 +80,47 @@ export async function getTotalEsperadoNoPeriodo(
   return (data ?? []).reduce((sum, r) => sum + Number(r.valor_esperado), 0);
 }
 
+export type PendenteRecorrente = {
+  id: string;
+  fonte_receita_id: string;
+  valor_esperado: number;
+  nome_fonte: string;
+  dataSugerida: string | null;
+};
+
+/** Lançamentos recorrentes reais (pendentes) já gerados pro período informado. */
+export async function getPendentesDoPeriodo(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  periodo: Periodo
+): Promise<PendenteRecorrente[]> {
+  let query = supabase
+    .from("receitas_recorrentes_lancamentos")
+    .select(
+      "id, fonte_receita_id, valor_esperado, periodo_referencia, fontes_receita(nome, dia_esperado)"
+    )
+    .eq("user_id", userId)
+    .eq("status", "pendente");
+
+  query =
+    periodo.modo === "ciclo" && periodo.cicloId
+      ? query.eq("ciclo_id", periodo.cicloId)
+      : query.is("ciclo_id", null).eq("periodo_referencia", periodo.dataInicio);
+
+  const { data } = await query;
+
+  return (data ?? []).map((p) => ({
+    id: p.id,
+    fonte_receita_id: p.fonte_receita_id,
+    valor_esperado: p.valor_esperado,
+    nome_fonte: p.fontes_receita?.nome ?? "",
+    dataSugerida: computeDataEsperada(
+      p.periodo_referencia,
+      p.fontes_receita?.dia_esperado ?? null
+    ),
+  }));
+}
+
 function clampDay(year: number, monthIndex: number, day: number): number {
   const daysInMonth = new Date(Date.UTC(year, monthIndex + 1, 0)).getUTCDate();
   return Math.min(day, daysInMonth);
