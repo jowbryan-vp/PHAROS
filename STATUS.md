@@ -6,12 +6,46 @@
 | 2 — Cadastros-base (Fontes de Receita, Contas, Categorias/Subcategorias) | Concluída | 2026-07-13 |
 | 3 — Receitas + Ciclo Financeiro (+ complementos: Receita Recorrente Esperada, Navegação entre Períodos) | Concluída | 2026-07-14 |
 | 4 — Cartões + Faturas | Concluída | 2026-07-13 |
-| 5 — Gastos Fixos Recorrentes | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
+| 5 — Gastos Fixos Recorrentes | Concluída | 2026-07-13 |
+| Complemento — Reestruturação do Dashboard | Concluída (aguardando revisão/merge do PR) | 2026-07-13 |
 | 6 | Não iniciada | — |
 | 7 | Não iniciada | — |
 | 8 | Não iniciada | — |
 | 9 | Não iniciada | — |
 | 10 | Não iniciada | — |
+
+## Complemento — Reestruturação do Dashboard
+
+O card "Seu perfil" (resquício de teste de Realtime da Etapa 1) saiu do
+Dashboard e virou a página própria `/perfil`, acessível por um dropdown no
+header (clique no e-mail do usuário → "Perfil" / "Sair", em
+`components/layout/user-menu.tsx`). O `ProfileRealtimeCard` em si não
+mudou, só de lugar.
+
+O Dashboard agora é só dados financeiros, organizados em `DashboardSection`s
+(um título + grade de `DashboardCard`s — ambos em
+`components/features/dashboard-card.tsx`), com um único
+`DashboardPeriodoNav` no topo controlando o período de todas as seções ao
+mesmo tempo (reaproveita o mesmo `resolvePeriodoView`/`?p=` já usado em
+Receitas e Gastos Fixos — não há navegação por card):
+
+- **Receitas**: Recebido no período / Esperado (pendente) — mesmos dados de
+  antes, só que agora como dois `DashboardCard`s em vez do
+  `ReceitasResumoCard` dedicado (removido, virou redundante).
+- **Cartões**: Faturas em aberto / a pagar / pagas no período — novo,
+  calculado por `getResumoFaturasDoPeriodo` (`lib/faturas.ts`), que soma os
+  lançamentos de fatura por status filtrando pela `data_vencimento` dentro
+  do período navegado (não é a mesma noção de "fatura corrente" de
+  `ensureFaturasAtualizadas` — é um corte por vencimento).
+- **Gastos Fixos**: Fixos pendentes / pagos — mesmos dados de antes, também
+  migrados do `GastosFixosResumoCard` dedicado (removido) para
+  `DashboardCard`s.
+
+`DashboardSection`/`DashboardCard` existem justamente para que Contribuição
+(Etapa 6), Cofrinhos (Etapa 7) e Saldo Projetado (Etapa 9) só precisem
+adicionar uma seção nova na grade — os pontos de entrada estão comentados
+no fim de `app/(dashboard)/dashboard/page.tsx`. Nenhum saldo consolidado ou
+projetado foi implementado aqui (fica pra Etapa 9, como no escopo original).
 
 ## Etapa 4 — decisão de arquitetura: fechamento automático de faturas
 

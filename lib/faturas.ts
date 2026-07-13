@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import { toISODate } from "@/lib/periodo";
+import type { Periodo } from "@/lib/periodo";
 
 type Cartao = Database["public"]["Tables"]["cartoes"]["Row"];
 type Fatura = Database["public"]["Tables"]["faturas"]["Row"];
@@ -226,4 +227,51 @@ export async function getOrCriarProximasFaturas(
   }
 
   return abertas.slice(0, quantidade);
+}
+
+export type ResumoFaturasPeriodo = {
+  totalAberto: number;
+  totalAPagar: number;
+  totalPago: number;
+};
+
+/**
+ * Soma o valor das faturas do usuário (todos os cartões) cuja
+ * data_vencimento cai dentro do período informado, agrupado por status.
+ * Usado pelo card de Cartões/Faturas do Dashboard — não é a mesma noção de
+ * "fatura corrente" de ensureFaturasAtualizadas, é um corte por vencimento
+ * dentro do período navegado.
+ */
+export async function getResumoFaturasDoPeriodo(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  periodo: Periodo | null
+): Promise<ResumoFaturasPeriodo> {
+  if (!periodo) return { totalAberto: 0, totalAPagar: 0, totalPago: 0 };
+
+  let query = supabase
+    .from("faturas")
+    .select("status, lancamentos_fatura(valor), cartoes!inner(user_id)")
+    .eq("cartoes.user_id", userId)
+    .gte("data_vencimento", periodo.dataInicio);
+
+  if (periodo.dataFim) {
+    query = query.lte("data_vencimento", periodo.dataFim);
+  }
+
+  const { data } = await query;
+
+  return (data ?? []).reduce<ResumoFaturasPeriodo>(
+    (acc, f) => {
+      const total = (f.lancamentos_fatura ?? []).reduce(
+        (sum, l) => sum + Number(l.valor),
+        0
+      );
+      if (f.status === "aberta") acc.totalAberto += total;
+      else if (f.status === "fechada") acc.totalAPagar += total;
+      else if (f.status === "paga") acc.totalPago += total;
+      return acc;
+    },
+    { totalAberto: 0, totalAPagar: 0, totalPago: 0 }
+  );
 }

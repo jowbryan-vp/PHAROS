@@ -1,7 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
-import { ProfileRealtimeCard } from "@/components/features/profile-realtime-card";
-import { ReceitasResumoCard } from "@/components/features/receitas-resumo-card";
-import { GastosFixosResumoCard } from "@/components/features/gastos-fixos-resumo-card";
+import { DashboardPeriodoNav } from "@/components/features/dashboard-periodo-nav";
+import { DashboardCard, DashboardSection } from "@/components/features/dashboard-card";
 import { getTotalRecebidoNoPeriodo } from "@/lib/periodo";
 import { resolvePeriodoView, getProjecaoRecorrentes } from "@/lib/periodo-navegacao";
 import {
@@ -14,6 +13,11 @@ import {
   getResumoDoPeriodo,
   getProjecaoGastosFixos,
 } from "@/lib/gastos-fixos";
+import { ensureFaturasAtualizadas, getResumoFaturasDoPeriodo } from "@/lib/faturas";
+
+function formatBRL(valor: number) {
+  return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
 
 export default async function DashboardPage({
   searchParams,
@@ -27,19 +31,11 @@ export default async function DashboardPage({
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: profile }, { count: fontesPrincipaisCount }] =
-    await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, nome, modo_financeiro, onboarding_completo")
-        .eq("id", user!.id)
-        .single(),
-      supabase
-        .from("fontes_receita")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user!.id)
-        .eq("is_principal", true),
-    ]);
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("modo_financeiro")
+    .eq("id", user!.id)
+    .single();
 
   const periodoView = await resolvePeriodoView(
     supabase,
@@ -47,6 +43,8 @@ export default async function DashboardPage({
     profile?.modo_financeiro ?? null,
     p
   );
+
+  await ensureFaturasAtualizadas(supabase, user!.id);
 
   let totalRecebido = 0;
   let totalEsperado = 0;
@@ -97,11 +95,11 @@ export default async function DashboardPage({
     }
   }
 
+  const resumoFaturas = await getResumoFaturasDoPeriodo(supabase, user!.id, periodoView);
+
   return (
     <div className="flex flex-col gap-6">
-      <ReceitasResumoCard
-        totalRecebido={totalRecebido}
-        totalEsperado={totalEsperado}
+      <DashboardPeriodoNav
         periodoLabel={periodoLabel}
         periodoNav={
           periodoView
@@ -114,20 +112,49 @@ export default async function DashboardPage({
         }
       />
 
-      {periodoView && (
-        <GastosFixosResumoCard
-          totalPendente={totalGastosPendente}
-          totalPago={totalGastosPago}
-          isProjetado={periodoView.isProjetado}
+      <DashboardSection title="Receitas">
+        <DashboardCard label="Recebido no período" value={formatBRL(totalRecebido)} />
+        <DashboardCard
+          label="Esperado (pendente)"
+          value={formatBRL(totalEsperado)}
+          tone="highlight"
         />
-      )}
+      </DashboardSection>
 
-      {profile && (
-        <ProfileRealtimeCard
-          profile={profile}
-          hasPrincipalFonte={(fontesPrincipaisCount ?? 0) > 0}
+      <DashboardSection title="Cartões">
+        <DashboardCard
+          label="Faturas em aberto"
+          value={formatBRL(resumoFaturas.totalAberto)}
         />
-      )}
+        <DashboardCard
+          label="Faturas a pagar"
+          value={formatBRL(resumoFaturas.totalAPagar)}
+          tone="highlight"
+        />
+        <DashboardCard
+          label="Faturas pagas no período"
+          value={formatBRL(resumoFaturas.totalPago)}
+        />
+      </DashboardSection>
+
+      <DashboardSection title="Gastos Fixos">
+        <DashboardCard
+          label="Fixos pendentes"
+          value={formatBRL(totalGastosPendente)}
+          tone="highlight"
+        />
+        <DashboardCard label="Fixos pagos" value={formatBRL(totalGastosPago)} />
+      </DashboardSection>
+
+      {/*
+        Etapa 6 (Contribuição): nova <DashboardSection title="Contribuição">
+        entra aqui.
+        Etapa 7 (Cofrinhos): nova <DashboardSection title="Cofrinhos"> entra
+        aqui.
+        Etapa 9 (Motor de Previsão): card de Saldo Projetado — provavelmente
+        um destaque no topo da grade, acima de "Receitas", já que consolida
+        as seções abaixo.
+      */}
     </div>
   );
 }
