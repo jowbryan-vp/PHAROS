@@ -10,6 +10,7 @@ type Profile = {
   nome: string | null;
   modo_financeiro: string | null;
   onboarding_completo: boolean;
+  percentual_contribuicao: number;
 };
 
 export function ProfileRealtimeCard({
@@ -21,8 +22,12 @@ export function ProfileRealtimeCard({
 }) {
   const [current, setCurrent] = useState(profile);
   const [nomeInput, setNomeInput] = useState(profile.nome ?? "");
+  const [percentualInput, setPercentualInput] = useState(
+    String(profile.percentual_contribuicao)
+  );
   const [saving, setSaving] = useState(false);
   const [savingModo, setSavingModo] = useState(false);
+  const [savingPercentual, setSavingPercentual] = useState(false);
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
@@ -42,6 +47,7 @@ export function ProfileRealtimeCard({
           const next = payload.new as Profile;
           setCurrent(next);
           setNomeInput(next.nome ?? "");
+          setPercentualInput(String(next.percentual_contribuicao));
         }
       )
       .subscribe((status) => {
@@ -61,6 +67,19 @@ export function ProfileRealtimeCard({
       .update({ nome: nomeInput })
       .eq("id", profile.id);
     setSaving(false);
+  }
+
+  async function handleSavePercentual() {
+    const percentual = Number(percentualInput.replace(",", "."));
+    if (!Number.isFinite(percentual) || percentual < 0 || percentual > 100) return;
+
+    setSavingPercentual(true);
+    const supabase = createClient();
+    await supabase
+      .from("profiles")
+      .update({ percentual_contribuicao: percentual })
+      .eq("id", profile.id);
+    setSavingPercentual(false);
   }
 
   async function handleModoChange(modo: "calendario" | "ciclo") {
@@ -158,6 +177,31 @@ export function ProfileRealtimeCard({
               como principal.
             </p>
           )}
+        </div>
+
+        <div className="mt-1">
+          <span className="mb-1 block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+            Percentual de contribuição
+          </span>
+          <div className="flex items-center gap-2">
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              max="100"
+              value={percentualInput}
+              onChange={(e) => setPercentualInput(e.target.value)}
+              className="w-24"
+            />
+            <span className="text-sm text-neutral-500 dark:text-neutral-400">%</span>
+            <Button onClick={handleSavePercentual} disabled={savingPercentual}>
+              {savingPercentual ? "Salvando..." : "Salvar"}
+            </Button>
+          </div>
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
+            Aplicado sobre receitas tributáveis lançadas a partir de agora —
+            não recalcula contribuições já geradas.
+          </p>
         </div>
       </div>
     </div>
