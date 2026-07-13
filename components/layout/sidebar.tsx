@@ -8,9 +8,10 @@ const LINKS = [
   { label: "Receitas", href: "/receitas" },
   { label: "Contas", href: "/contas" },
   { label: "Categorias", href: "/categorias" },
+  { label: "Cartões", href: "/cartoes" },
 ];
 
-const DISABLED_ITEMS = ["Cartões", "Cofrinhos"];
+const DISABLED_ITEMS = ["Cofrinhos"];
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -19,7 +20,8 @@ export function Sidebar() {
     <nav className="hidden w-56 shrink-0 border-r border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900 md:block">
       <ul className="flex flex-col gap-1">
         {LINKS.map((link) => {
-          const active = pathname === link.href;
+          const active =
+            pathname === link.href || pathname.startsWith(`${link.href}/`);
           return (
             <li key={link.href}>
               <Link

@@ -284,6 +284,163 @@ export type Database = {
           },
         ];
       };
+      cartoes: {
+        Row: {
+          id: string;
+          user_id: string;
+          nome: string;
+          dia_fechamento: number;
+          dia_vencimento: number;
+          conta_pagamento_padrao_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          nome: string;
+          dia_fechamento: number;
+          dia_vencimento: number;
+          conta_pagamento_padrao_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          nome?: string;
+          dia_fechamento?: number;
+          dia_vencimento?: number;
+          conta_pagamento_padrao_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "cartoes_conta_pagamento_padrao_id_fkey";
+            columns: ["conta_pagamento_padrao_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      faturas: {
+        Row: {
+          id: string;
+          cartao_id: string;
+          periodo_inicio: string;
+          periodo_fim: string;
+          data_vencimento: string;
+          status: "aberta" | "fechada" | "paga";
+          conta_pagamento_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          cartao_id: string;
+          periodo_inicio: string;
+          periodo_fim: string;
+          data_vencimento: string;
+          status?: "aberta" | "fechada" | "paga";
+          conta_pagamento_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          cartao_id?: string;
+          periodo_inicio?: string;
+          periodo_fim?: string;
+          data_vencimento?: string;
+          status?: "aberta" | "fechada" | "paga";
+          conta_pagamento_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "faturas_cartao_id_fkey";
+            columns: ["cartao_id"];
+            isOneToOne: false;
+            referencedRelation: "cartoes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "faturas_conta_pagamento_id_fkey";
+            columns: ["conta_pagamento_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lancamentos_fatura: {
+        Row: {
+          id: string;
+          fatura_id: string;
+          descricao: string;
+          valor: number;
+          categoria_id: string;
+          subcategoria_id: string | null;
+          eh_parcelado: boolean;
+          parcela_atual: number | null;
+          total_parcelas: number | null;
+          compra_original_id: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          fatura_id: string;
+          descricao: string;
+          valor: number;
+          categoria_id: string;
+          subcategoria_id?: string | null;
+          eh_parcelado?: boolean;
+          parcela_atual?: number | null;
+          total_parcelas?: number | null;
+          compra_original_id?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          fatura_id?: string;
+          descricao?: string;
+          valor?: number;
+          categoria_id?: string;
+          subcategoria_id?: string | null;
+          eh_parcelado?: boolean;
+          parcela_atual?: number | null;
+          total_parcelas?: number | null;
+          compra_original_id?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lancamentos_fatura_fatura_id_fkey";
+            columns: ["fatura_id"];
+            isOneToOne: false;
+            referencedRelation: "faturas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lancamentos_fatura_categoria_id_fkey";
+            columns: ["categoria_id"];
+            isOneToOne: false;
+            referencedRelation: "categorias";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lancamentos_fatura_subcategoria_id_fkey";
+            columns: ["subcategoria_id"];
+            isOneToOne: false;
+            referencedRelation: "subcategorias";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lancamentos_fatura_compra_original_id_fkey";
+            columns: ["compra_original_id"];
+            isOneToOne: false;
+            referencedRelation: "lancamentos_fatura";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
