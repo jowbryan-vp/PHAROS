@@ -441,6 +441,118 @@ export type Database = {
           },
         ];
       };
+      gastos_fixos: {
+        Row: {
+          id: string;
+          user_id: string;
+          nome: string;
+          valor: number;
+          dia_vencimento: number;
+          conta_pagamento_padrao_id: string | null;
+          categoria_id: string;
+          ativo: boolean;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          nome: string;
+          valor: number;
+          dia_vencimento: number;
+          conta_pagamento_padrao_id?: string | null;
+          categoria_id: string;
+          ativo?: boolean;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          nome?: string;
+          valor?: number;
+          dia_vencimento?: number;
+          conta_pagamento_padrao_id?: string | null;
+          categoria_id?: string;
+          ativo?: boolean;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gastos_fixos_conta_pagamento_padrao_id_fkey";
+            columns: ["conta_pagamento_padrao_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gastos_fixos_categoria_id_fkey";
+            columns: ["categoria_id"];
+            isOneToOne: false;
+            referencedRelation: "categorias";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      gastos_fixos_lancamentos: {
+        Row: {
+          id: string;
+          user_id: string;
+          gasto_fixo_id: string;
+          ciclo_id: string | null;
+          periodo_referencia: string;
+          valor: number;
+          status: "pendente" | "pago";
+          conta_pagamento_id: string | null;
+          data_pagamento: string | null;
+          criado_em: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          gasto_fixo_id: string;
+          ciclo_id?: string | null;
+          periodo_referencia: string;
+          valor: number;
+          status?: "pendente" | "pago";
+          conta_pagamento_id?: string | null;
+          data_pagamento?: string | null;
+          criado_em?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          gasto_fixo_id?: string;
+          ciclo_id?: string | null;
+          periodo_referencia?: string;
+          valor?: number;
+          status?: "pendente" | "pago";
+          conta_pagamento_id?: string | null;
+          data_pagamento?: string | null;
+          criado_em?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "gastos_fixos_lancamentos_gasto_fixo_id_fkey";
+            columns: ["gasto_fixo_id"];
+            isOneToOne: false;
+            referencedRelation: "gastos_fixos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gastos_fixos_lancamentos_ciclo_id_fkey";
+            columns: ["ciclo_id"];
+            isOneToOne: false;
+            referencedRelation: "ciclos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "gastos_fixos_lancamentos_conta_pagamento_id_fkey";
+            columns: ["conta_pagamento_id"];
+            isOneToOne: false;
+            referencedRelation: "contas";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
